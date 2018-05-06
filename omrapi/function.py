@@ -1,74 +1,3 @@
-from django.shortcuts import render
-from django.utils import timezone
-from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.template import RequestContext, loader
-
-from django.shortcuts import get_object_or_404, render
-import argparse
-import cv2
-import cv2
-import math
-import numpy as np
-import json
-from cv2 import *
-
-from omrapi import function
-
-import numpy as np
-import cv2
-
-import numpy as np
-import urllib
-import cv2
-import urllib.request
-
-
-#http://127.0.0.1:8000/omrendpoint/?input=http://i.imgur.com/JTAgYNF.jpg&output=http://i.imgur.com/4n9fKFF.png&show=sometext
-
-
-
-
-
-
-
-def omr_api(request):
-    url = 'jsdj'
-    getInput = request.GET.get('input', None)
-    getOutput = request.GET.get('output', None)
-    getShow = request.GET.get('show', None)
-
-    input = '/Users/pintu/Desktop/omr-master/img/hi.jpg'
-    output = '/Users/pintu/Desktop/omr-master/tmp/results.png'
-
-    answers, im = get_answers(input)
-
-    for i, answer in enumerate(answers):
-        print("Q{}: {}".format(i + 1, answer))
-
-    if getOutput:
-        cv2.imwrite(output, im)
-        print("Wrote image to {}".format(output))
-
-    if getShow:
-        cv2.imshow('trans', im)
-
-        print("Close image window and hit ^C to quit.")
-        while True:
-            cv2.waitKey()
-
-    return HttpResponse(
-        json.dumps(
-            {
-                'browser': getInput,
-                'url': getOutput
-
-            }
-        )
-    )
-
-
-# pre-function
-
 CORNER_FEATS = (
     0.322965313273202,
     0.19188334690998524,
@@ -77,6 +6,12 @@ CORNER_FEATS = (
 )
 
 TRANSF_SIZE = 512
+
+import argparse
+import cv2
+import math
+import numpy as np
+
 
 def normalize(im):
     return cv2.normalize(im, np.zeros(im.shape), 0, 255, norm_type=cv2.NORM_MINMAX)
@@ -337,21 +272,3 @@ def main():
         print("Close image window and hit ^C to quit.")
         while True:
             cv2.waitKey()
-
-
-def url_to_image(url):
-    # download the image, convert it to a NumPy array, and then read
-    # it into OpenCV format
-
-
-    resp = urllib.request.urlopen(url)
-
-
-    image = np.asarray(bytearray(resp.read()), dtype="uint8")
-    image = cv2.imdecode(image, -1)
-
-    # return the image
-    return image
-
-
-
