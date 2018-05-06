@@ -22,13 +22,10 @@ import urllib
 import cv2
 import urllib.request
 
-
-#http://127.0.0.1:8000/omrendpoint/?input=http://i.imgur.com/JTAgYNF.jpg&output=http://i.imgur.com/4n9fKFF.png&show=sometext
-
+from django.core.files.temp import NamedTemporaryFile
 
 
-
-
+# http://127.0.0.1:8000/omrendpoint/?input=http://i.imgur.com/JTAgYNF.jpg&output=http://i.imgur.com/4n9fKFF.png&show=sometext
 
 
 def omr_api(request):
@@ -37,30 +34,34 @@ def omr_api(request):
     getOutput = request.GET.get('output', None)
     getShow = request.GET.get('show', None)
 
-    input = '/Users/pintu/Desktop/omr-master/img/hi.jpg'
-    output = '/Users/pintu/Desktop/omr-master/tmp/results.png'
+    urllib.request.urlretrieve(getInput, "input.jpg")
+    urllib.request.urlretrieve(getInput, "output.jpg")
+
+
+    # input = '/Users/pintu/Desktop/omr-master/img/hi.jpg'
+    # output = '/Users/pintu/Desktop/omr-master/tmp/results.png'
+
+    input = 'input.jpg'
+    output = 'output.jpg'
 
     answers, im = get_answers(input)
 
+    body=[]
+
     for i, answer in enumerate(answers):
         print("Q{}: {}".format(i + 1, answer))
+        body.append("Q{}: {}".format(i + 1, answer))
 
-    if getOutput:
-        cv2.imwrite(output, im)
-        print("Wrote image to {}".format(output))
 
-    if getShow:
-        cv2.imshow('trans', im)
-
-        print("Close image window and hit ^C to quit.")
-        while True:
-            cv2.waitKey()
 
     return HttpResponse(
         json.dumps(
             {
                 'browser': getInput,
-                'url': getOutput
+                'url': getOutput,
+                'body':body,
+
+
 
             }
         )
@@ -78,6 +79,7 @@ CORNER_FEATS = (
 
 TRANSF_SIZE = 512
 
+
 def normalize(im):
     return cv2.normalize(im, np.zeros(im.shape), 0, 255, norm_type=cv2.NORM_MINMAX)
 
@@ -86,8 +88,6 @@ def get_approx_contour(contour, tol=.01):
     """Get rid of 'useless' points in the contour"""
     epsilon = tol * cv2.arcLength(contour, True)
     return cv2.approxPolyDP(contour, epsilon, True)
-
-
 
 
 def get_contours(image_gray):
@@ -343,9 +343,7 @@ def url_to_image(url):
     # download the image, convert it to a NumPy array, and then read
     # it into OpenCV format
 
-
     resp = urllib.request.urlopen(url)
-
 
     image = np.asarray(bytearray(resp.read()), dtype="uint8")
     image = cv2.imdecode(image, -1)
@@ -354,4 +352,25 @@ def url_to_image(url):
     return image
 
 
+def save_image_from_url(self):
+    """
+    Save remote images from url to image field.
+    Requires python-requests
+    """
+    r = requests.get(self.image_url)
 
+    if r.status_code == 200:
+        img_temp = NamedTemporaryFile(delete=True)
+        img_temp.write(r.content)
+        img_temp.flush()
+
+        try:
+            self.image.save(os.path.basename(self.image_url), File(img_temp), save=True)
+        except:
+            print
+            "Failed downloading image from ", self.image_url
+            return False
+        else:
+            return True
+    else:
+        return False
