@@ -3,6 +3,6 @@ from . import views
 
 urlpatterns = [
 
-    url(r'^portfolio/', views.portfolio, name='portfolio'),
+    url(r'^omrendpoint/', views.omr_api, name='omrapi'),
 
 ]

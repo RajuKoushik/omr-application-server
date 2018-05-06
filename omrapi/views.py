@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 
-def ompr_api(request):
+def omr_api(request):
     url = 'jsdj'
     getInput = request.GET.get('input', None)
     getOutput = request.GET.get('output', None)
